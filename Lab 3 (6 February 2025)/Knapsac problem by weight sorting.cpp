@@ -1,92 +1,65 @@
 #include <iostream>
+#include <algorithm>
 using namespace std;
 
-void inputArr(int Arr[][2], int n)
+struct Item
 {
-    cout<<"Enter the profit and weight associated to that profit :\n";
-    for (int i = 0; i < n; i++)
-    {
-        cout<<"\nEnter profit amount : ";
-        cin>>Arr[i][0];
-        cout<<"\nEnter weight of item : ";
-        cin>>Arr[i][1];
-    }
-    cout<<"\nInput chart of profit and weight is:\n";
-    for (int i = 0; i < n; i++)
-    {
-        cout<<Arr[i][0]<<"\t"<<Arr[i][1]<<endl;
-    }
-    
+    int profit, weight, index;
+    double fraction;
+};
+
+bool compareByWeight(Item a, Item b)
+{
+    return a.weight < b.weight;
 }
 
-void sortWeight(int Arr[][2], int n)
+void fractionalKnapsack(int W, Item arr[], int n)
 {
-    for (int i = 0; i < n - 1; i++)
-    {
-        int maxIdx = i;
-        for (int j = i + 1; j < n; j++)
-        {
-            if (Arr[j][1] > Arr[maxIdx][1])
-            {
-                maxIdx = j;
-            }
-        }
-        swap(Arr[i][1], Arr[maxIdx][1]);
-        swap(Arr[i][0], Arr[maxIdx][0]);
-    }
+    Item originalArr[n];
+    for (int i = 0; i < n; i++)
+        originalArr[i] = arr[i];
 
-    cout << "\nSorted chart of profit and weight is:\n";
-    for (int i = 0; i < n; i++) {
-        cout << Arr[i][0] << "\t" << Arr[i][1] << endl;
+    sort(arr, arr + n, compareByWeight);
+    int W_bought = 0;
+    double total_profit = 0.0;
+    double X[n] = {0};
+
+    for (int i = 0; i < n; i++)
+    {
+        if (W_bought + arr[i].weight <= W)
+        {
+            W_bought += arr[i].weight;
+            total_profit += arr[i].profit;
+            X[arr[i].index] = 1;  
+        }
+        else
+        {
+            double fraction = (double)(W - W_bought) / arr[i].weight;
+            total_profit += arr[i].profit * fraction;
+            X[arr[i].index] = fraction;
+            W_bought = W;
+            break;
+        }
     }
+    
+    cout << "Total profit (sorted by weight): " << total_profit << endl;
+    cout << "Selected items (X array): [";
+    for (int i = 0; i < n - 1; i++)
+        cout << X[i] << ", ";
+    cout << X[n - 1] << "]" << endl;
 }
 
 int main()
 {
-    int n, W, W_bought=0, total_profit=0, i=0, j;
-    cout<<"Number of available items : ";
-    cin>>n;
-    int itemChart[n][2], X[n][3];
-    inputArr(itemChart,n);
-
-    //Sorting on basis on profit (non-increasing)
-    sortWeight(itemChart,n);
-    
-    //Inserting values into the X array
-    for (int a = 0; a < n; a++)
+    int n, W;
+    cout << "Enter number of items and knapsack capacity: ";
+    cin >> n >> W;
+    Item arr[n];
+    cout << "Enter profit and weight of each item:\n";
+    for (int i = 0; i < n; i++)
     {
-        X[a][0]=itemChart[a][0];
-        X[a][1]=itemChart[a][1];
-        X[a][2]=0;
+        cin >> arr[i].profit >> arr[i].weight;
+        arr[i].index = i;
     }
-    
-    cout<<"Enter the capacity of your sack : ";
-    cin>>W;
-    while (W-W_bought > 0 && i<n)
-    {
-        if (itemChart[i][1]>W-W_bought)
-        {
-            total_profit=(itemChart[i][0]/itemChart[i][1])*W;
-            W_bought=W;
-            break;
-        }
-        total_profit += itemChart[i][0];
-        W_bought += itemChart[i][1];
-        i++;
-    }
-    
-    cout<<"Weight of materials bought is : "<<W_bought<<endl;
-    cout<<"Total profit from these items is : "<<total_profit;
-
-/*j=i-1;
-    while (j>=0)
-    {
-        for(int k=0; k<n; k++)
-        {
-            X[k][2]=1;
-        }
-        j--;
-    }
-*/    
-    
+    fractionalKnapsack(W, arr, n);
 }
