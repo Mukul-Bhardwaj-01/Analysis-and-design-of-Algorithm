@@ -1,46 +1,93 @@
 #include <iostream>
+#include <vector>
+#include <algorithm>
+
 using namespace std;
 
-void heapify(int arr[], int n, int i)
-{
-    int smallest = i;
-    int left = 2*i +1;
-    int right = 2*i +2;
+struct Edge {
+    int src, dest, weight;
+};
 
-    if(left<n && arr[left]<arr[smallest])
-    {
-        smallest=left;
-    }
-    if (right<n && arr[right]<arr[smallest])
-    {
-        smallest=right;
-    }
-    
-    if (smallest!=i)
-    {
-        swap(arr[i],arr[smallest]);
-        heapify(arr, n, smallest);
-    }
-    
+int find(vector<int>& parent, int i)
+{
+    if (parent[i] == i)
+        return i;
+    return parent[i] = find(parent, parent[i]);
 }
 
-void minheap(int heap[], int n)
+void unionSets(vector<int>& parent, vector<int>& rank, int x, int y)
 {
-    for (int i = n/2-1; i >=0 ; i--)
+    int xroot = find(parent, x);
+    int yroot = find(parent, y);
+
+    if (xroot != yroot)
     {
-        heapify(heap,n,i);
+        if (rank[xroot] < rank[yroot])
+            parent[xroot] = yroot;
+        else if (rank[xroot] > rank[yroot])
+            parent[yroot] = xroot;
+        else
+        {
+            parent[yroot] = xroot;
+            rank[xroot]++;
+        }
     }
+}
+
+vector<Edge> kruskalMST(vector<Edge>& edges, int numVertices)
+{
+    vector<Edge> result;
+
+    sort(edges.begin(), edges.end(), [](const Edge& a, const Edge& b)
+    {
+        return a.weight < b.weight;
+    });
+
+    vector<int> parent(numVertices);
+    vector<int> rank(numVertices, 0);
+
+    for (int i = 0; i < numVertices; ++i)
+        parent[i] = i;
+
+    int edgeCount = 0;
+    int i = 0;
+
+    while (edgeCount < numVertices - 1 && i < edges.size())
+    {
+        Edge nextEdge = edges[i++];
+
+        int x = find(parent, nextEdge.src);
+        int y = find(parent, nextEdge.dest);
+
+        if (x != y)
+        {
+            result.push_back(nextEdge);
+            unionSets(parent, rank, x, y);
+            edgeCount++;
+        }
+    }
+
+    return result;
 }
 
 int main()
 {
-    int E[8][3] = {{1,2,1}, {1,3,9}, {2,4,4}, {2,6,6}, {3,4,8}, {3,5,7}, {4,5,10}, {5,6,2}};
-    int edgeWtHeap[8]={1, 9, 4, 6, 8, 7, 10, 2};
-    minheap(edgeWtHeap,8);
-    cout<<"[";
-    for (int i = 0; i < 8; i++)
+    int numVertices = 4;
+    vector<Edge> edges = {
+        {0, 1, 10},
+        {0, 2, 6},
+        {0, 3, 5},
+        {1, 3, 15},
+        {2, 3, 4}
+    };
+
+    vector<Edge> mst = kruskalMST(edges, numVertices);
+
+    cout << "Edges in the Minimum Spanning Tree:" << endl;
+    for (const auto& edge : mst)
     {
-        cout<<edgeWtHeap[i]<<", ";
+        cout << edge.src << " -- " << edge.dest << " : " << edge.weight << endl;
     }
-    cout<<"]";
+
+    return 0;
 }
