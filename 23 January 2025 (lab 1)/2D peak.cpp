@@ -35,24 +35,21 @@ void findPeak(int **Arr, int m, int n, int **peaks)
         {
             bool isPeak = true;
 
-            // Check top
+            
             if (i > 0 && Arr[i][j] <= Arr[i - 1][j])
                 isPeak = false;
             
-            // Check bottom
             if (i < m - 1 && Arr[i][j] <= Arr[i + 1][j])
                 isPeak = false;
             
-            // Check left
             if (j > 0 && Arr[i][j] <= Arr[i][j - 1])
                 isPeak = false;
             
-            // Check right
             if (j < n - 1 && Arr[i][j] <= Arr[i][j + 1])
                 isPeak = false;
 
             if (isPeak)
-                peaks[i][j] = 1; // Mark peak positions
+                peaks[i][j] = 1;
         }
     }
     printArr(m, n, peaks);
@@ -79,7 +76,6 @@ int main()
     cout << "Peak Matrix:\n";
     findPeak(Mountains, m, n, peaks);
 
-    // Free allocated memory
     for (int i = 0; i < m; i++)
     {
         delete[] Mountains[i];
